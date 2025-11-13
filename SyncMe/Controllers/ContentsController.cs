@@ -20,9 +20,19 @@ namespace SyncMe.Controllers
         }
 
         // GET: Contents
-        public async Task<IActionResult> Index()
-        {
-            return View(await _context.Contents.ToListAsync());
+        public async Task<IActionResult> Index(string searchString) {
+            // 1. Cria a query base (não executa no banco ainda)
+            var contents = from c in _context.Contents
+                           select c;
+
+            // 2. Se o usuário digitou algo, filtra
+            if (!String.IsNullOrEmpty(searchString)) {
+                contents = contents.Where(s => s.Title.Contains(searchString)
+                                            || s.Category.Contains(searchString));
+            }
+
+            // 3. Executa e manda para a tela
+            return View(await contents.ToListAsync());
         }
 
         // GET: Contents/Details/5
