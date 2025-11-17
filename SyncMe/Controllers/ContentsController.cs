@@ -6,6 +6,7 @@ using SyncMe.Services;
 using SyncMe.ViewModels; // 1. Importar o ViewModel
 
 namespace SyncMe.Controllers {
+    [Route("academy")]
     public class ContentsController : Controller {
         private readonly ContentService _service;
 
@@ -14,6 +15,7 @@ namespace SyncMe.Controllers {
         }
 
         // GET: Contents (Atualizado com Filtros)
+        [Route("")]
         public async Task<IActionResult> Index(
             string searchString,
             int? categoryId,
@@ -40,6 +42,7 @@ namespace SyncMe.Controllers {
         }
 
         // GET: Contents/Details/5
+        [Route("details/{id}")]
         public async Task<IActionResult> Details(int? id) {
             if (id == null) return NotFound();
             var content = await _service.GetByIdAsync(id.Value);
@@ -49,6 +52,7 @@ namespace SyncMe.Controllers {
 
         // --- MUDANÇA IMPORTANTE (ViewModel) ---
         // GET: Contents/Create
+        [Route("create")]
         public async Task<IActionResult> Create() {
             // 4. Prepara o ViewModel com os dropdowns
             var viewModel = new ContentViewModel {
@@ -61,6 +65,7 @@ namespace SyncMe.Controllers {
         // POST: Contents/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("create")]
         // 5. Recebe o ViewModel, não a Model
         public async Task<IActionResult> Create(ContentViewModel viewModel) {
             if (ModelState.IsValid) {
@@ -86,6 +91,7 @@ namespace SyncMe.Controllers {
         }
 
         // GET: Contents/Edit/5
+        [Route("edit/{id}")]
         public async Task<IActionResult> Edit(int? id) {
             if (id == null) return NotFound();
             var content = await _service.GetByIdAsync(id.Value);
@@ -111,6 +117,7 @@ namespace SyncMe.Controllers {
         // POST: Contents/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("edit/{id}")]
         public async Task<IActionResult> Edit(int id, ContentViewModel viewModel) {
             if (id != viewModel.Id) return NotFound();
 
@@ -143,6 +150,7 @@ namespace SyncMe.Controllers {
         }
 
         // GET: Contents/Delete/5
+        [Route("delete/{id}")]
         public async Task<IActionResult> Delete(int? id) {
             if (id == null) return NotFound();
             var content = await _service.GetByIdAsync(id.Value);
@@ -153,6 +161,7 @@ namespace SyncMe.Controllers {
         // POST: Contents/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Route("delete/{id}")]
         public async Task<IActionResult> DeleteConfirmed(int id) {
             await _service.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
