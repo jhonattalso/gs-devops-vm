@@ -50,11 +50,15 @@ namespace SyncMe.Controllers {
             return View(content);
         }
 
-        // --- MUDANÇA IMPORTANTE (ViewModel) ---
+        //Páginas de ADM
         // GET: Contents/Create
         [Route("create")]
         public async Task<IActionResult> Create() {
-            // 4. Prepara o ViewModel com os dropdowns
+
+            if (HttpContext.Session.GetString("IsAdmin") != "true") {
+                return RedirectToAction("Login", "Admin"); // Se não for admin, manda pro login
+            }
+
             var viewModel = new ContentViewModel {
                 Categories = new SelectList(await _service.GetCategoriesAsync(), "Id", "Name"),
                 Tracks = new SelectList(await _service.GetTracksAsync(), "Id", "Title")
@@ -68,6 +72,11 @@ namespace SyncMe.Controllers {
         [Route("create")]
         // 5. Recebe o ViewModel, não a Model
         public async Task<IActionResult> Create(ContentViewModel viewModel) {
+
+            if (HttpContext.Session.GetString("IsAdmin") != "true") {
+                return RedirectToAction("Login", "Admin");
+            }
+
             if (ModelState.IsValid) {
                 // 6. Mapeia do ViewModel para a Model
                 var content = new Content {
@@ -93,6 +102,11 @@ namespace SyncMe.Controllers {
         // GET: Contents/Edit/5
         [Route("edit/{id}")]
         public async Task<IActionResult> Edit(int? id) {
+
+            if (HttpContext.Session.GetString("IsAdmin") != "true") {
+                return RedirectToAction("Login", "Admin");
+            }
+
             if (id == null) return NotFound();
             var content = await _service.GetByIdAsync(id.Value);
             if (content == null) return NotFound();
@@ -119,6 +133,11 @@ namespace SyncMe.Controllers {
         [ValidateAntiForgeryToken]
         [Route("edit/{id}")]
         public async Task<IActionResult> Edit(int id, ContentViewModel viewModel) {
+
+            if (HttpContext.Session.GetString("IsAdmin") != "true") {
+                return RedirectToAction("Login", "Admin");
+            }
+
             if (id != viewModel.Id) return NotFound();
 
             if (ModelState.IsValid) {
@@ -152,6 +171,11 @@ namespace SyncMe.Controllers {
         // GET: Contents/Delete/5
         [Route("delete/{id}")]
         public async Task<IActionResult> Delete(int? id) {
+
+            if (HttpContext.Session.GetString("IsAdmin") != "true") {
+                return RedirectToAction("Login", "Admin");
+            }
+
             if (id == null) return NotFound();
             var content = await _service.GetByIdAsync(id.Value);
             if (content == null) return NotFound();
@@ -163,6 +187,11 @@ namespace SyncMe.Controllers {
         [ValidateAntiForgeryToken]
         [Route("delete/{id}")]
         public async Task<IActionResult> DeleteConfirmed(int id) {
+
+            if (HttpContext.Session.GetString("IsAdmin") != "true") {
+                return RedirectToAction("Login", "Admin");
+            }
+
             await _service.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
