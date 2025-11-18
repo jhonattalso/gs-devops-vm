@@ -1,12 +1,17 @@
 ﻿@model IEnumerable<SyncMe.Models.Content>
 @using SyncMe.Models
-
 @using Microsoft.AspNetCore.Http
+@using System.Text.RegularExpressions
 @inject IHttpContextAccessor HttpContextAccessor
 
 @{
     ViewData["Title"] = "BalanceMe Academy";
     bool isAdmin = HttpContextAccessor.HttpContext.Session.GetString("IsAdmin") == "true";
+
+    // Agrupa os conteúdos por categoria
+    var groupedContents = Model
+        .GroupBy(item => item.Category?.Name ?? "Outros")
+        .OrderBy(g => g.Key);
 }
 
 <div class="container mt-4">
@@ -50,29 +55,91 @@
         </form>
     </div>
 
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        @foreach (var item in Model) {
-            <div class="col">
-                <div class="card h-100 shadow-sm">
-                    <img src="@(item.MediaUrl ?? "https://via.placeholder.com/400x200.png?text=Artigo")" class="card-img-top" alt="@item.Title" style="height: 200px; object-fit: cover;">
-                    <div class="card-body">
-                        <h5 class="card-title">@Html.DisplayFor(modelItem => item.Title)</h5>
-                        <p class="card-text text-muted small">@Html.DisplayFor(modelItem => item.Summary)</p>
-                    </div>
-                    <div class="card-footer bg-white border-0 p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge bg-info text-dark">@item.Category?.Name</span>
-                            <span class="badge bg-light text-dark">@item.Difficulty</span>
-                        </div>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm">Ver Detalhes</a>
-                        @if (isAdmin) {
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-secondary btn-sm">Editar</a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm">Deletar</a>
-                        }
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
+    @foreach (var categoryGroup in groupedContents) {
+        <div class="category-section mb-5">
+            <h2 class="category-title">@categoryGroup.Key</h2>
+            <hr class="mb-4" />
 
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                @foreach (var item in categoryGroup) {
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+
+                            @* --- LÓGICA DE VÍDEO VS IMAGEM AQUI --- *@
+                            @{
+                                var youtubeEmbedLink = GetYouTubeEmbedLink(item.MediaUrl);
+                            }
+
+                            @if (youtubeEmbedLink != null) {
+                                // Se for YouTube, exibe o iframe
+                                <div style="height: 200px; overflow: hidden; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                                    <iframe src="@youtubeEmbedLink"
+                                            title="YouTube video player"
+                                            frameborder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowfullscreen
+                                            style="width: 100%; height: 100%;">
+                                    </iframe>
+                                </div>
+                            }
+                            else {
+                                // Se não for, exibe a imagem normalmente
+                                <img src="@(item.MediaUrl ?? "https://via.placeholder.com/400x200.png?text=Artigo")"
+                                     class="card-img-top"
+                                     alt="@item.Title"
+                                     style="height: 200px; object-fit: cover;">
+                            }
+                            @* --------------------------------------- *@
+
+                            <div class="card-body">
+                                <h5 class="card-title">@Html.DisplayFor(modelItem => item.Title)</h5>
+                                <p class="card-text text-muted small">
+                                    @{
+                                        const int maxSummaryLength = 100;
+                                        string summary = item.Summary ?? string.Empty;
+
+                                        if (summary.Length > maxSummaryLength) {
+                                            @summary.Substring(0, maxSummaryLength)
+                                            <text>...</text>
+                                        }
+                                        else {
+                                            @summary
+                                        }
+                                    }
+                                </p>
+                            </div>
+                            <div class="card-footer bg-white border-0 p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge bg-info text-dark">@item.Category?.Name</span>
+                                    <span class="badge bg-light text-dark">@item.Difficulty</span>
+                                </div>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm">Ver Detalhes</a>
+                                @if (isAdmin) {
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-secondary btn-sm">Editar</a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm">Deletar</a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
 </div>
+
+@* Função auxiliar para converter links normais do YouTube em links de Embed *@
+@functions {
+    public string? GetYouTubeEmbedLink(string? url) {
+        if (string.IsNullOrEmpty(url)) return null;
+
+        // Expressão regular para pegar o ID do vídeo (funciona com youtube.com e youtu.be)
+        var regex = new Regex(@"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^""&?\/\s]{11})");
+        var match = regex.Match(url);
+
+        if (match.Success) {
+            return $"https://www.youtube.com/embed/{match.Groups[1].Value}";
+        }
+
+        return null;
+    }
+}
