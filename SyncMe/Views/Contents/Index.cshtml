@@ -65,47 +65,28 @@
                     <div class="col">
                         <div class="card h-100 shadow-sm">
 
-                            @* --- LÓGICA DE VÍDEO VS IMAGEM AQUI --- *@
+                            @* --- LÓGICA DE PRIORIDADE DE CAPA --- *@
                             @{
-                                var youtubeEmbedLink = GetYouTubeEmbedLink(item.MediaUrl);
+                                var youtubeEmbed = GetYouTubeEmbedLink(item.MediaUrl);
+                                bool hasCoverImage = !string.IsNullOrEmpty(item.CoverImageUrl);
                             }
 
-                            @if (youtubeEmbedLink != null) {
-                                // Se for YouTube, exibe o iframe
+                            @if (hasCoverImage) {
+                                <img src="@item.CoverImageUrl" class="card-img-top" alt="@item.Title" style="height: 200px; object-fit: cover;">
+                            }
+                            else if (youtubeEmbed != null) {
                                 <div style="height: 200px; overflow: hidden; border-top-left-radius: 10px; border-top-right-radius: 10px;">
-                                    <iframe src="@youtubeEmbedLink"
-                                            title="YouTube video player"
-                                            frameborder="0"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowfullscreen
-                                            style="width: 100%; height: 100%;">
-                                    </iframe>
+                                    <iframe src="@youtubeEmbed" title="Video" frameborder="0" allowfullscreen style="width: 100%; height: 100%;"></iframe>
                                 </div>
                             }
                             else {
-                                // Se não for, exibe a imagem normalmente
-                                <img src="@(item.MediaUrl ?? "https://via.placeholder.com/400x200.png?text=Artigo")"
-                                     class="card-img-top"
-                                     alt="@item.Title"
-                                     style="height: 200px; object-fit: cover;">
+                                <img src="https://via.placeholder.com/400x200.png?text=Sem+Capa" class="card-img-top" style="height: 200px; object-fit: cover;">
                             }
-                            @* --------------------------------------- *@
 
                             <div class="card-body">
                                 <h5 class="card-title">@Html.DisplayFor(modelItem => item.Title)</h5>
                                 <p class="card-text text-muted small">
-                                    @{
-                                        const int maxSummaryLength = 100;
-                                        string summary = item.Summary ?? string.Empty;
-
-                                        if (summary.Length > maxSummaryLength) {
-                                            @summary.Substring(0, maxSummaryLength)
-                                            <text>...</text>
-                                        }
-                                        else {
-                                            @summary
-                                        }
-                                    }
+                                    @item.Summary
                                 </p>
                             </div>
                             <div class="card-footer bg-white border-0 p-3">
@@ -113,10 +94,11 @@
                                     <span class="badge bg-info text-dark">@item.Category?.Name</span>
                                     <span class="badge bg-light text-dark">@item.Difficulty</span>
                                 </div>
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm">Ver Detalhes</a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm">Ler Artigo</a>
+
                                 @if (isAdmin) {
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-secondary btn-sm">Editar</a>
-                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm">Deletar</a>
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-secondary btn-sm">Edit</a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm">Del</a>
                                 }
                             </div>
                         </div>
@@ -127,19 +109,11 @@
     }
 </div>
 
-@* Função auxiliar para converter links normais do YouTube em links de Embed *@
 @functions {
     public string? GetYouTubeEmbedLink(string? url) {
         if (string.IsNullOrEmpty(url)) return null;
-
-        // Expressão regular para pegar o ID do vídeo (funciona com youtube.com e youtu.be)
         var regex = new Regex(@"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^""&?\/\s]{11})");
         var match = regex.Match(url);
-
-        if (match.Success) {
-            return $"https://www.youtube.com/embed/{match.Groups[1].Value}";
-        }
-
-        return null;
+        return match.Success ? $"https://www.youtube.com/embed/{match.Groups[1].Value}" : null;
     }
 }

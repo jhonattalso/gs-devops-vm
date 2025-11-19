@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SyncMe.Models;
 using SyncMe.Services;
-using SyncMe.ViewModels; // 1. Importar o ViewModel
+using SyncMe.ViewModels;
 
 namespace SyncMe.Controllers {
     [Route("academy")]
@@ -14,20 +14,19 @@ namespace SyncMe.Controllers {
             _service = service;
         }
 
-        // GET: Contents (Atualizado com Filtros)
+        // GET: Contents
         [Route("")]
         public async Task<IActionResult> Index(
             string searchString,
             int? categoryId,
             DifficultyLevel? difficulty,
             int? pageNumber) {
-            int pageSize = 6; // 6 cards por página
+
+            int pageSize = 6;
             int pageIndex = pageNumber ?? 1;
 
-            // 2. Passa os filtros para o Service
             var result = await _service.GetAllAsync(searchString, categoryId, difficulty, pageIndex, pageSize);
 
-            // ViewBags para manter os filtros selecionados na tela
             ViewBag.SearchString = searchString;
             ViewBag.CategoryId = categoryId;
             ViewBag.Difficulty = difficulty;
@@ -35,7 +34,6 @@ namespace SyncMe.Controllers {
             ViewBag.CurrentPage = result.CurrentPage;
             ViewBag.TotalPages = result.TotalPages;
 
-            // 3. Envia os dropdowns de filtro para a View
             ViewBag.Categories = new SelectList(await _service.GetCategoriesAsync(), "Id", "Name", categoryId);
 
             return View(result.Items);
@@ -50,13 +48,13 @@ namespace SyncMe.Controllers {
             return View(content);
         }
 
-        //Páginas de ADM
+        // --- ÁREA ADMINISTRATIVA ---
+
         // GET: Contents/Create
         [Route("create")]
         public async Task<IActionResult> Create() {
-
             if (HttpContext.Session.GetString("IsAdmin") != "true") {
-                return RedirectToAction("Login", "Admin"); // Se não for admin, manda pro login
+                return RedirectToAction("Login", "Admin");
             }
 
             var viewModel = new ContentViewModel {
@@ -70,18 +68,17 @@ namespace SyncMe.Controllers {
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("create")]
-        // 5. Recebe o ViewModel, não a Model
         public async Task<IActionResult> Create(ContentViewModel viewModel) {
-
             if (HttpContext.Session.GetString("IsAdmin") != "true") {
                 return RedirectToAction("Login", "Admin");
             }
 
             if (ModelState.IsValid) {
-                // 6. Mapeia do ViewModel para a Model
                 var content = new Content {
                     Title = viewModel.Title,
                     Summary = viewModel.Summary,
+                    ArticleBody = viewModel.ArticleBody, // <--- NOVO
+                    CoverImageUrl = viewModel.CoverImageUrl, // <--- NOVO
                     MediaUrl = viewModel.MediaUrl,
                     Difficulty = viewModel.Difficulty,
                     CategoryId = viewModel.CategoryId,
@@ -93,7 +90,7 @@ namespace SyncMe.Controllers {
                 return RedirectToAction(nameof(Index));
             }
 
-            // 7. Se falhar, repopula os dropdowns
+            // Se der erro, recarrega os dropdowns
             viewModel.Categories = new SelectList(await _service.GetCategoriesAsync(), "Id", "Name", viewModel.CategoryId);
             viewModel.Tracks = new SelectList(await _service.GetTracksAsync(), "Id", "Title", viewModel.TrackId);
             return View(viewModel);
@@ -102,7 +99,6 @@ namespace SyncMe.Controllers {
         // GET: Contents/Edit/5
         [Route("edit/{id}")]
         public async Task<IActionResult> Edit(int? id) {
-
             if (HttpContext.Session.GetString("IsAdmin") != "true") {
                 return RedirectToAction("Login", "Admin");
             }
@@ -111,16 +107,18 @@ namespace SyncMe.Controllers {
             var content = await _service.GetByIdAsync(id.Value);
             if (content == null) return NotFound();
 
-            // 8. Mapeia da Model para o ViewModel
+            // Preenche o ViewModel com os dados do banco (incluindo os novos)
             var viewModel = new ContentViewModel {
                 Id = content.Id,
                 Title = content.Title,
                 Summary = content.Summary,
+                ArticleBody = content.ArticleBody, // <--- NOVO
+                CoverImageUrl = content.CoverImageUrl, // <--- NOVO
                 MediaUrl = content.MediaUrl,
                 Difficulty = content.Difficulty,
                 CategoryId = content.CategoryId,
                 TrackId = content.TrackId,
-                // 9. Popula os dropdowns e seleciona os valores corretos
+
                 Categories = new SelectList(await _service.GetCategoriesAsync(), "Id", "Name", content.CategoryId),
                 Tracks = new SelectList(await _service.GetTracksAsync(), "Id", "Title", content.TrackId)
             };
@@ -133,7 +131,6 @@ namespace SyncMe.Controllers {
         [ValidateAntiForgeryToken]
         [Route("edit/{id}")]
         public async Task<IActionResult> Edit(int id, ContentViewModel viewModel) {
-
             if (HttpContext.Session.GetString("IsAdmin") != "true") {
                 return RedirectToAction("Login", "Admin");
             }
@@ -142,12 +139,14 @@ namespace SyncMe.Controllers {
 
             if (ModelState.IsValid) {
                 try {
-                    // 10. Mapeia do ViewModel de volta para a Model
                     var contentToUpdate = await _service.GetByIdAsync(id);
                     if (contentToUpdate == null) return NotFound();
 
+                    // Atualiza os campos
                     contentToUpdate.Title = viewModel.Title;
                     contentToUpdate.Summary = viewModel.Summary;
+                    contentToUpdate.ArticleBody = viewModel.ArticleBody; // <--- NOVO
+                    contentToUpdate.CoverImageUrl = viewModel.CoverImageUrl; // <--- NOVO
                     contentToUpdate.MediaUrl = viewModel.MediaUrl;
                     contentToUpdate.Difficulty = viewModel.Difficulty;
                     contentToUpdate.CategoryId = viewModel.CategoryId;
@@ -162,7 +161,6 @@ namespace SyncMe.Controllers {
                 return RedirectToAction(nameof(Index));
             }
 
-            // 11. Se falhar, repopula os dropdowns
             viewModel.Categories = new SelectList(await _service.GetCategoriesAsync(), "Id", "Name", viewModel.CategoryId);
             viewModel.Tracks = new SelectList(await _service.GetTracksAsync(), "Id", "Title", viewModel.TrackId);
             return View(viewModel);
@@ -171,11 +169,9 @@ namespace SyncMe.Controllers {
         // GET: Contents/Delete/5
         [Route("delete/{id}")]
         public async Task<IActionResult> Delete(int? id) {
-
             if (HttpContext.Session.GetString("IsAdmin") != "true") {
                 return RedirectToAction("Login", "Admin");
             }
-
             if (id == null) return NotFound();
             var content = await _service.GetByIdAsync(id.Value);
             if (content == null) return NotFound();
@@ -187,11 +183,9 @@ namespace SyncMe.Controllers {
         [ValidateAntiForgeryToken]
         [Route("delete/{id}")]
         public async Task<IActionResult> DeleteConfirmed(int id) {
-
             if (HttpContext.Session.GetString("IsAdmin") != "true") {
                 return RedirectToAction("Login", "Admin");
             }
-
             await _service.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }

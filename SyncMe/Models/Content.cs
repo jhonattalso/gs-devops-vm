@@ -13,9 +13,20 @@ namespace SyncMe.Models {
         [Column("NM_TITLE")]
         public string Title { get; set; }
 
+        // Resumo curto para aparecer no Card
         [Required(ErrorMessage = "O resumo é obrigatório")]
+        [StringLength(300, ErrorMessage = "O resumo deve ter no máximo 300 caracteres")]
         [Column("DS_SUMMARY")]
         public string Summary { get; set; }
+
+        // --- NOVO: Corpo do Artigo (Texto Longo / Blog) ---
+        // Sem StringLength, o banco entende que pode ser texto muito longo
+        [Column("DS_ARTICLE_BODY")]
+        public string? ArticleBody { get; set; }
+
+        // --- NOVO: Imagem de Capa Opcional ---
+        [Column("DS_COVER_IMAGE_URL")]
+        public string? CoverImageUrl { get; set; }
 
         [Column("DS_MEDIA_URL")]
         public string? MediaUrl { get; set; } // Link do YouTube
@@ -29,7 +40,6 @@ namespace SyncMe.Models {
 
         // --- RELACIONAMENTOS ---
 
-        // FK para Categoria (Obrigatório)
         [Required(ErrorMessage = "Selecione uma categoria")]
         [Column("ID_CATEGORY")]
         public int CategoryId { get; set; }
@@ -37,7 +47,6 @@ namespace SyncMe.Models {
         [ForeignKey("CategoryId")]
         public Category? Category { get; set; }
 
-        // FK para Trilha (Opcional - um conteúdo pode não pertencer a trilha nenhuma)
         [Column("ID_TRACK")]
         public int? TrackId { get; set; }
 

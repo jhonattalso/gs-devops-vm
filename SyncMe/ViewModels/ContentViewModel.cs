@@ -14,6 +14,13 @@ namespace SyncMe.ViewModels {
         [Display(Name = "Resumo")]
         public string Summary { get; set; }
 
+        [Display(Name = "Corpo do Artigo")]
+        public string? ArticleBody { get; set; } // Texto longo do blog
+
+        [Display(Name = "URL da Imagem de Capa")]
+        public string? CoverImageUrl { get; set; } // URL da imagem de capa
+
+
         [Display(Name = "Link da Mídia (YouTube/Imagem)")]
         public string? MediaUrl { get; set; }
 

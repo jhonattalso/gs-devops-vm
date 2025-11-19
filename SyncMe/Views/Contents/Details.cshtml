@@ -1,55 +1,70 @@
 ﻿@model SyncMe.Models.Content
+@using SyncMe.Models
+@using System.Text.RegularExpressions
 
 @{
-    ViewData["Title"] = "Sala de Aula";
-    // Lógica simples para converter link normal do YouTube em Link Embed
-    // Ex: de youtube.com/watch?v=123 para youtube.com/embed/123
-    string videoEmbedUrl = "";
-    if (!string.IsNullOrEmpty(Model.MediaUrl) && Model.MediaUrl.Contains("v=")) {
-        var videoId = Model.MediaUrl.Split("v=")[1].Split("&")[0];
-        videoEmbedUrl = $"https://www.youtube.com/embed/{videoId}";
-    }
+    ViewData["Title"] = "Detalhes do Artigo";
 }
 
-<div class="container mt-4">
-    <div class="mb-4">
-        <a asp-action="Index" class="btn btn-outline-secondary mb-3">← Voltar para a Academy</a>
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
 
-        <h1 class="display-5">@Model.Title</h1>
-        <div class="d-flex gap-2">
-            <span class="badge bg-info text-dark">@Model.Category?.Name</span>
-            <span class="badge bg-secondary">@Model.Difficulty</span>
-            <small class="text-muted align-self-center">Publicado em: @Model.PublishDate.ToString("dd/MM/yyyy")</small>
+            <a asp-action="Index" class="btn btn-outline-secondary mb-4">&larr; Voltar para a lista</a>
+
+            <article>
+                <header class="mb-4">
+                    <h1 class="fw-bolder mb-1">@Model.Title</h1>
+                    <div class="text-muted fst-italic mb-2">Postado em @Model.PublishDate.ToString("dd/MM/yyyy") por Admin</div>
+                    <span class="badge bg-primary text-decoration-none link-light">@Model.Category?.Name</span>
+                    <span class="badge bg-secondary text-decoration-none link-light">@Model.Difficulty</span>
+                </header>
+
+                <figure class="mb-4">
+                    @{
+                        var youtubeEmbed = GetYouTubeEmbedLink(Model.MediaUrl);
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.CoverImageUrl)) {
+                        <img class="img-fluid rounded" src="@Model.CoverImageUrl" alt="Capa do Artigo" style="width:100%; max-height: 500px; object-fit: cover;" />
+                    }
+                    else if (youtubeEmbed != null) {
+                        <div class="ratio ratio-16x9">
+                            <iframe src="@youtubeEmbed" allowfullscreen></iframe>
+                        </div>
+                    }
+                </figure>
+
+                <section class="mb-5 article-content">
+                    @if (!string.IsNullOrEmpty(Model.ArticleBody)) {
+                        // Use DisplayFor para manter quebras de linha se for texto simples,
+                        // ou Html.Raw se você planeja usar um editor rico (HTML) no futuro.
+                        // Por enquanto, vamos assumir texto com quebras de linha:
+                        <p class="fs-5 mb-4" style="white-space: pre-wrap;">@Model.ArticleBody</p>
+                    }
+                    else {
+                        <p class="fs-5 mb-4">@Model.Summary</p>
+                    }
+                </section>
+
+                @if (!string.IsNullOrEmpty(Model.CoverImageUrl) && youtubeEmbed != null) {
+                    <hr />
+                    <h4 class="mt-4">Vídeo Complementar</h4>
+                    <div class="ratio ratio-16x9 mt-3">
+                        <iframe src="@youtubeEmbed" allowfullscreen></iframe>
+                    </div>
+                }
+
+            </article>
         </div>
-    </div>
-
-
-    @if (!string.IsNullOrEmpty(videoEmbedUrl)) {
-
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <div class="ratio ratio-16x9 mb-4 shadow bg-black rounded">
-                    <iframe src="@videoEmbedUrl" title="YouTube video player" allowfullscreen></iframe>
-                </div>
-
-            </div>
-        </div>
-    }
-    else {
-        <div class="alert alert-warning">
-            <strong>Nenhum vídeo disponível.</strong> (Certifique-se de que o link cadastrado é um link válido do YouTube).
-        </div>
-    }
-
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h4 class="card-title">Resumo da Aula</h4>
-            <p class="card-text lead">@Model.Summary</p>
-        </div>
-    </div>
-
-    <div class="mt-4 text-end">
-        @* TODO: Adicionar lógica para mostrar/esconder este botão se não for admin *@
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar Conteúdo</a>
     </div>
 </div>
+
+@functions {
+    public string? GetYouTubeEmbedLink(string? url) { /* Mesma função do Index */
+        if (string.IsNullOrEmpty(url)) return null;
+        var regex = new Regex(@"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^""&?\/\s]{11})");
+        var match = regex.Match(url);
+        return match.Success ? $"https://www.youtube.com/embed/{match.Groups[1].Value}" : null;
+    }
+}
