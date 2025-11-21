@@ -5,10 +5,11 @@
 O **BalanceMe Academy** é uma plataforma web desenvolvida para enfrentar os desafios do "Futuro do Trabalho", focando na organização e disponibilização de conteúdos educacionais para *upskilling* e *reskilling*. A aplicação permite o gerenciamento de trilhas de aprendizado, conteúdos multimídia e categorização por níveis de dificuldade, servindo como um hub para o desenvolvimento contínuo de competências.
 
 ### 👥 Integrantes do Grupo
-* **Nome do Aluno 1** - RM: XXXXX
-* **Nome do Aluno 2** - RM: XXXXX
-* **Nome do Aluno 3** - RM: XXXXX
-* **Turma:** 2TDSPA
+* **Jhonatta Lima Sandes de Oliveira** - RM: 560277
+* **Rangel Bernadi Jordão** - RM: 560547
+* **Lucas José Lima** - RM: 561160
+
+**Turma:** 2TDSPA
 
 ---
 
@@ -121,11 +122,10 @@ dotnet ef database update
 ```
 
 #### 3. Executando a Aplicação
-Após configurar o banco, inicie o servidor com:
+Após configurar o banco, inicie o servidor apertando F5 ou abrindo o terminal e digitando:
 ```
 dotnet run
 ```
-Ou aperte F5
 
 
 
