@@ -23,7 +23,8 @@ No contexto da disciplina de DevOps Tools & Cloud Computing, este projeto demons
 
 A solução foi implantada utilizando a infraestrutura como serviço (IaaS) na Microsoft Azure, composta por dois ambientes virtualizados interligados por uma rede privada virtual (VNet).
 
-<img width="4800" height="1592" alt="arq_gs_devops" src="https://github.com/user-attachments/assets/27a2b086-56d3-4b0d-bfa4-0fe67f397780" />
+<img width="4800" height="1440" alt="arq_gs_devops" src="https://github.com/user-attachments/assets/635b916f-9d4f-4fee-8654-a49f70994a41" />
+
 
 
 ### 1. Servidor de Aplicação (Front-end)
