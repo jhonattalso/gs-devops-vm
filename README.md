@@ -59,6 +59,76 @@ O projeto segue o padrão MVC (Model-View-Controller) e utiliza as seguintes tec
 
 ---
 
+## Instruções de Implantação Detalhadas
+
+Este guia descreve o processo completo para configurar o ambiente de produção no servidor Linux (Ubuntu 22.04 LTS) e iniciar a aplicação.
+
+### Preparação do Ambiente (Servidor Linux)
+Aceda ao terminal da VM via SSH e execute os seguintes comandos para atualizar o sistema e instalar as dependências necessárias (.NET 9.0 Runtime/SDK e bibliotecas nativas do Oracle):
+
+##### Atualização de pacotes
+```
+sudo apt-get update && sudo apt-get upgrade -y
+```
+
+##### Adicionar repositório de pacotes da Microsoft
+```
+wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+rm packages-microsoft-prod.deb
+```
+
+##### Instalar .NET SDK 9.0, Git e biblioteca libaio (necessária para driver Oracle)
+```
+sudo apt-get update
+sudo apt-get install -y dotnet-sdk-9.0 git libaio1
+```
+
+### Instalação da Aplicação
+Clone o repositório oficial e navegue até a pasta do projeto:
+
+##### Clonar repositório
+```
+git clone https://github.com/jhonattalso/gs-devops-vm.git
+```
+
+##### Aceder ao diretório da aplicação
+```
+cd gs-devops-vm/SyncMe
+```
+
+### Configuração de Conectividade
+A aplicação precisa de comunicar com a VM de Banco de Dados. Edite o ficheiro de configuração para definir a string de conexão correta.
+
+##### Editar ficheiro de configuração
+```
+nano appsettings.json
+```
+
+Localize a secção "ConnectionStrings" e altere o valor de "Data Source" para o **IP Privado** da VM Windows (ex: 10.0.0.4):
+
+```json
+"ConnectionStrings": {
+  "OracleConnection": "Data Source=<IP_PRIVADO>:1521/XE;User Id=syncme;Password=Fiap2025#;"
+}
+```
+
+(Pressione Ctrl+O para salvar e Ctrl+X para sair)
+
+### Execução (Deploy)
+Para iniciar a aplicação web e expô-la na porta 80 (HTTP), utilize o comando abaixo.
+Nota: É necessário usar 'sudo' para permitir o bind na porta 80.
+
+```
+sudo dotnet run --urls "http://0.0.0.0:80"
+```
+
+### Verificação
+Após iniciar, o sistema realizará automaticamente a aplicação das migrações pendentes (criação de tabelas no Oracle).
+Aceda através do navegador: http://IP_PUBLICO_DA_VM_LINUX
+
+---
+
 ## Endpoints Principais
 
 A aplicação expõe as seguintes rotas principais:
