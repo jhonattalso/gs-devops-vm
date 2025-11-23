@@ -63,7 +63,7 @@ O projeto segue o padrão MVC (Model-View-Controller) e utiliza as seguintes tec
 
 ---
 
-## Instruções de Implantação Detalhadas
+<!-- ## Instruções de Implantação Detalhadas
 
 Este guia descreve o processo completo para configurar o ambiente de produção no servidor Linux (Ubuntu 22.04 LTS) e iniciar a aplicação.
 
@@ -152,7 +152,7 @@ sudo dotnet run --urls "http://0.0.0.0:80"
 Após iniciar, o sistema realizará automaticamente a aplicação das migrações pendentes (criação de tabelas no Oracle).
 Aceda através do navegador: http://IP_PUBLICO_DA_VM_LINUX
 
----
+--- -->
 
 ## Endpoints Principais
 
@@ -167,5 +167,3 @@ A aplicação expõe as seguintes rotas principais:
 | POST | /academy/create | Cadastro de novos conteúdos. | Admin |
 | POST | /academy/edit/{id} | Edição de conteúdos existentes. | Admin |
 | POST | /academy/delete/{id} | Exclusão de conteúdos. | Admin |
-
----
